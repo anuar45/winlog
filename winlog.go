@@ -35,17 +35,15 @@ func FetchEvents(subsHandle EvtHandle) ([]EvtHandle, error) {
 	return eventHandles[:evtReturned], nil
 }
 
-func RenderEvent(e EvtHandle) (string, error) {
+func RenderEvent(e EvtHandle) ([]byte, error) {
 	bufferSize := 1 << 14
 	renderBuffer := make([]byte, bufferSize)
 	var bufferUsed, propertyCount uint32
-	var result string
+
 	err := _EvtRender(0, e, EvtRenderEventXml, uint32(len(renderBuffer)), &renderBuffer[0], &bufferUsed, &propertyCount)
 	if err != nil {
-		return result, err
+		return nil, err
 	}
 
-	result, err = DecodeUTF16(renderBuffer[:bufferUsed])
-
-	return result, err
+	return DecodeUTF16(renderBuffer[:bufferUsed])
 }

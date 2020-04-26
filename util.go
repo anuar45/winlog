@@ -7,10 +7,10 @@ import (
 	"unicode/utf8"
 )
 
-func DecodeUTF16(b []byte) (string, error) {
+func DecodeUTF16(b []byte) ([]byte, error) {
 
 	if len(b)%2 != 0 {
-		return "", fmt.Errorf("Must have even length byte slice")
+		return nil, fmt.Errorf("Must have even length byte slice")
 	}
 
 	u16s := make([]uint16, 1)
@@ -27,5 +27,5 @@ func DecodeUTF16(b []byte) (string, error) {
 		ret.Write(b8buf[:n])
 	}
 
-	return ret.String(), nil
+	return ret.Bytes(), nil
 }
