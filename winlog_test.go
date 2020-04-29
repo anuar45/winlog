@@ -31,7 +31,7 @@ func TestEvents(t *testing.T) {
 			if err != nil {
 				switch err {
 				case ERROR_NO_MORE_ITEMS:
-					fmt.Println("check no more items")
+					fmt.Println("no more events")
 					break loop
 				default:
 					t.Error(err)
@@ -56,6 +56,13 @@ func TestEvents(t *testing.T) {
 				}
 			}
 			w.Flush()
+
+			for i := 0; i < len(eventHandles); i++ {
+				err := CloseEvent(eventHandles[i])
+				if err != nil {
+					t.Error(err)
+				}
+			}
 		}
 
 	}

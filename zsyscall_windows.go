@@ -43,6 +43,7 @@ var (
 	procEvtRender    = modwevtapi.NewProc("EvtRender")
 	procEvtClose     = modwevtapi.NewProc("EvtClose")
 	procEvtNext      = modwevtapi.NewProc("EvtNext")
+	procEvtQuery     = modwevtapi.NewProc("EvtQuery")
 )
 
 func _EvtSubscribe(session EvtHandle, signalEvent uintptr, channelPath *uint16, query *uint16, bookmark EvtHandle, context uintptr, callback syscall.Handle, flags EvtSubscribeFlag) (handle EvtHandle, err error) {
@@ -85,6 +86,19 @@ func _EvtClose(object EvtHandle) (err error) {
 func _EvtNext(resultSet EvtHandle, eventArraySize uint32, eventArray *EvtHandle, timeout uint32, flags uint32, numReturned *uint32) (err error) {
 	r1, _, e1 := syscall.Syscall6(procEvtNext.Addr(), 6, uintptr(resultSet), uintptr(eventArraySize), uintptr(unsafe.Pointer(eventArray)), uintptr(timeout), uintptr(flags), uintptr(unsafe.Pointer(numReturned)))
 	if r1 == 0 {
+		if e1 != 0 {
+			err = errnoErr(e1)
+		} else {
+			err = syscall.EINVAL
+		}
+	}
+	return
+}
+
+func _EvtQuery(session EvtHandle, path *uint16, query *uint16, flags uint32) (handle EvtHandle, err error) {
+	r0, _, e1 := syscall.Syscall6(procEvtQuery.Addr(), 4, uintptr(session), uintptr(unsafe.Pointer(path)), uintptr(unsafe.Pointer(query)), uintptr(flags), 0, 0)
+	handle = EvtHandle(r0)
+	if handle == 0 {
 		if e1 != 0 {
 			err = errnoErr(e1)
 		} else {

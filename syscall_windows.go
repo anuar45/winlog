@@ -17,12 +17,7 @@ type EvtSubscribeFlag uint32
 // EVT_SUBSCRIBE_FLAGS enumeration
 // https://msdn.microsoft.com/en-us/library/windows/desktop/aa385588(v=vs.85).aspx
 const (
-	EvtSubscribeToFutureEvents      EvtSubscribeFlag = 1
-	EvtSubscribeStartAtOldestRecord EvtSubscribeFlag = 2
-	EvtSubscribeStartAfterBookmark  EvtSubscribeFlag = 3
-	EvtSubscribeOriginMask          EvtSubscribeFlag = 0x3
-	EvtSubscribeTolerateQueryErrors EvtSubscribeFlag = 0x1000
-	EvtSubscribeStrict              EvtSubscribeFlag = 0x10000
+	EvtSubscribeToFutureEvents EvtSubscribeFlag = 1
 )
 
 type EvtRenderFlag uint32
@@ -30,12 +25,21 @@ type EvtRenderFlag uint32
 // EVT_RENDER_FLAGS enumeration
 // https://msdn.microsoft.com/en-us/library/windows/desktop/aa385563(v=vs.85).aspx
 const (
-	// Render the event properties specified in the rendering context.
-	EvtRenderEventValues EvtRenderFlag = iota
-	// Render the event as an XML string. For details on the contents of the
-	// XML string, see the Event schema.
-	EvtRenderEventXml
-	// Render the bookmark as an XML string, so that you can easily persist the
-	// bookmark for use later.
-	EvtRenderBookmark
+	EvtRenderEventXml = 1
+)
+
+// EvtQueryFlag defines the values that specify how to return the query results
+// and whether you are query against a channel or log file.
+type EvtQueryFlag uint32
+
+const (
+	// EvtQueryForwardDirection specifies that the events in the query result
+	// are ordered from oldest to newest. This is the default.
+	EvtQueryForwardDirection EvtQueryFlag = 0x100
+	// EvtQueryReverseDirection specifies that the events in the query result
+	// are ordered from newest to oldest.
+	EvtQueryReverseDirection EvtQueryFlag = 0x200
+	// EvtQueryTolerateQueryErrors specifies that EvtQuery should run the query
+	// even if the part of the query generates an error (is not well formed).
+	EvtQueryTolerateQueryErrors EvtQueryFlag = 0x1000
 )
