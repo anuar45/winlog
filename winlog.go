@@ -1,8 +1,10 @@
 package winlog
 
 import (
-	"golang.org/x/sys/windows"
+	"encoding/xml"
 	"syscall"
+
+	"golang.org/x/sys/windows"
 )
 
 func Subscribe(logName, xquery string) (EvtHandle, error) {
@@ -51,7 +53,7 @@ func FetchEventHandles(subsHandle EvtHandle) ([]EvtHandle, error) {
 	return eventHandles[:evtReturned], nil
 }
 
-func FetchEvents(subsHandle) ([]Event, error) {
+func FetchEvents(subsHandle EvtHandle) ([]Event, error) {
 	var events []Event
 
 	eventHandles, err := FetchEventHandles(subsHandle)
@@ -76,7 +78,7 @@ func FetchEvents(subsHandle) ([]Event, error) {
 	for i := 0; i < len(eventHandles); i++ {
 		err := CloseEvent(eventHandles[i])
 		if err != nil {
-			t.Error(err)
+			return events, err
 		}
 	}
 	return events, nil
@@ -97,7 +99,7 @@ func RenderEvent(e EvtHandle) ([]byte, error) {
 
 func QueryEventHandles(logName, xquery string) ([]EvtHandle, error) {
 	// TODO
-	return 0, nil
+	return nil, nil
 }
 
 func QueryEvents(logName, xquery string) ([]Event, error) {
