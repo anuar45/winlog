@@ -1,3 +1,5 @@
+// +build windows
+
 package winlog
 
 import (
@@ -7,7 +9,27 @@ import (
 	"golang.org/x/sys/windows"
 )
 
-func Subscribe(logName, xquery string) (EvtHandle, error) {
+var bufferSize = 1 << 14
+
+type Winlog struct {
+	subs EvtHandle
+	buf  []byte
+}
+
+func Subscribe(logName, xquery string) (*Winlog, error) {
+	var w Winlog
+
+	w.subs, err = subscribe()
+	if err != nil {
+		return nil, err
+	}
+
+	w.buf = make([]byte, bufferSize)
+
+	return &w, nil
+}
+
+func subscribe(logName, xquery string) (EvtHandle, error) {
 	var logNamePtr, xqueryPtr *uint16
 
 	sigEvent, err := windows.CreateEvent(nil, 0, 0, nil)
@@ -34,7 +56,7 @@ func Subscribe(logName, xquery string) (EvtHandle, error) {
 	return subsHandle, nil
 }
 
-func FetchEventHandles(subsHandle EvtHandle) ([]EvtHandle, error) {
+func fetchEventHandles(subsHandle EvtHandle) ([]EvtHandle, error) {
 	var eventsNumber uint32
 	var evtReturned uint32
 
@@ -53,17 +75,17 @@ func FetchEventHandles(subsHandle EvtHandle) ([]EvtHandle, error) {
 	return eventHandles[:evtReturned], nil
 }
 
-func FetchEvents(subsHandle EvtHandle) ([]Event, error) {
+func (w *Winlog) Fetch() ([]Event, error) {
 	var events []Event
 
-	eventHandles, err := FetchEventHandles(subsHandle)
+	eventHandles, err := fetchEventHandles(subsHandle)
 	if err != nil {
 		return nil, err
 	}
 
 	for _, eventHandle := range eventHandles {
 		if eventHandle != 0 {
-			eventXML, err := RenderEvent(eventHandle)
+			eventXML, err := w.renderEvent(eventHandle)
 			if err != nil {
 				return nil, err
 			}
@@ -84,25 +106,23 @@ func FetchEvents(subsHandle EvtHandle) ([]Event, error) {
 	return events, nil
 }
 
-func RenderEvent(e EvtHandle) ([]byte, error) {
-	bufferSize := 1 << 14
-	renderBuffer := make([]byte, bufferSize)
+func (w *Winlog) renderEvent(e EvtHandle) ([]byte, error) {
 	var bufferUsed, propertyCount uint32
 
-	err := _EvtRender(0, e, EvtRenderEventXml, uint32(len(renderBuffer)), &renderBuffer[0], &bufferUsed, &propertyCount)
+	err := _EvtRender(0, e, EvtRenderEventXml, uint32(len(renderBuffer)), &w.buf[0], &bufferUsed, &propertyCount)
 	if err != nil {
 		return nil, err
 	}
 
-	return DecodeUTF16(renderBuffer[:bufferUsed])
+	return DecodeUTF16(w.buf[:bufferUsed])
 }
 
-func QueryEventHandles(logName, xquery string) ([]EvtHandle, error) {
+func queryEventHandles(logName, xquery string) ([]EvtHandle, error) {
 	// TODO
 	return nil, nil
 }
 
-func QueryEvents(logName, xquery string) ([]Event, error) {
+func Query(logName, xquery string) ([]Event, error) {
 	// TODO
 	return nil, nil
 }
